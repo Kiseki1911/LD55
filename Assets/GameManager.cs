@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class GameManager : Singleton<GameManager>
 {
     public int counter;
     public Volume volume;
@@ -30,6 +30,12 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (counter == 0)
+        {
+            randomHSV += Time.deltaTime * 30;
+            if (randomHSV > 360) randomHSV -= 360;
+            circiles[0].GetComponent<SpriteRenderer>().color = Color.HSVToRGB((randomHSV) / 360f, 1, 1);
+        }
         if (counter < circiles.Count)
         {
             circiles[counter].transform.rotation = Quaternion.Euler(0, 0, mod * (10 + counter * 20) * Time.time);
@@ -79,14 +85,24 @@ public class GameManager : MonoBehaviour
     }
     IEnumerator Result()
     {
+        yield return new WaitForSeconds(1f);
+        item.GetComponent<ParticleSystem>().Play();
+        item.GetComponent<SpriteRenderer>().sprite = ResultManager.Instance.items[(int)(randomHSV/36)].sprite;
         yield return new WaitForSeconds(1.5f);
         SpinAll = true;
-        yield return new WaitForSeconds(0.5f);
-        ResultManager.Instance.panel.SetActive(true);
+        yield return new WaitForSeconds(.1f);
+        ResultManager.Instance.ShowResult();
+        
     }
     public void Summon()
     {
         item.SetActive(true);
         StartCoroutine(Result());
+    }
+
+    public void Reload()
+    {
+        counter = 0;
+        SceneManager.LoadScene(0);
     }
 }
