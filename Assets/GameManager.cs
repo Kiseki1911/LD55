@@ -20,6 +20,8 @@ public class GameManager : Singleton<GameManager>
     public GameObject item;
     bool SpinAll;
     float mod;
+    public float finalAngles;
+    float lastAngle;
     // Start is called before the first frame update
     void Start()
     {
@@ -42,6 +44,14 @@ public class GameManager : Singleton<GameManager>
             Camera.main.backgroundColor = Mathf.Lerp(Camera.main.backgroundColor.r, 1 - counter / 4f, 0.04f) * Color.white;
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
             {
+                if (lastAngle != 0)
+                {
+                    float temp = Mathf.Abs(lastAngle - circiles[counter].transform.rotation.eulerAngles.z);
+                    if (temp > 180) temp = 360 - temp;
+                    finalAngles += temp;
+                }
+                lastAngle = circiles[counter].transform.rotation.eulerAngles.z;
+
                 counter++;
                 LightUp(counter);
                 curTime = Time.time;
@@ -79,7 +89,7 @@ public class GameManager : Singleton<GameManager>
         if (val < circiles.Count)
         {
             circiles[val].SetActive(true);
-            circiles[val].GetComponent<SpriteRenderer>().color = Color.HSVToRGB((randomHSV + val * 15) / 360f, 1, 1);
+            circiles[val].GetComponent<SpriteRenderer>().color = Color.HSVToRGB(((randomHSV + val * 15) / 360f) > 1 ? 1 : ((randomHSV + val * 15) / 360f), 1, 1);
             mod = Random.value > 0.5f ? 1 : -1;
         }
     }
@@ -87,12 +97,12 @@ public class GameManager : Singleton<GameManager>
     {
         yield return new WaitForSeconds(1f);
         item.GetComponent<ParticleSystem>().Play();
-        item.GetComponent<SpriteRenderer>().sprite = ResultManager.Instance.items[(int)(randomHSV/36)].sprite;
+        item.GetComponent<SpriteRenderer>().sprite = ResultManager.Instance.items[(int)(randomHSV / 36)].sprite;
         yield return new WaitForSeconds(1.5f);
         SpinAll = true;
         yield return new WaitForSeconds(.1f);
         ResultManager.Instance.ShowResult();
-        
+
     }
     public void Summon()
     {
